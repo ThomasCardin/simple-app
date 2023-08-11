@@ -1,0 +1,28 @@
+services:
+  statefull-go-app:
+    build: .
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - PORT=8081
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/src
+    networks:
+      - local-network
+
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata6:/data/db
+    networks:
+      - local-network
+
+volumes:
+  dbdata6:
+
+networks:
+  local-network:
+    driver: bridge
