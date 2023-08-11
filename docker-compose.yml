@@ -1,28 +1,30 @@
 services:
   statefull-go-app:
     build: .
-    environment:
-      - MONGODB_URL=mongodb://mongodb:27017
-      - PORT=8081
+    env_file:
+      - .env
     depends_on:
       - mongodb
     volumes:
       - .:/src
     networks:
-      - local-network
+      - app_network
 
   mongodb:
-    image: mongo:6-jammy
+    image: mongo:latest
     ports:
-      - '27017:27017'
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
     volumes:
-      - dbdata6:/data/db
+      - mongodb:/data/db
     networks:
-      - local-network
-
-volumes:
-  dbdata6:
+      - app_network
 
 networks:
-  local-network:
+  app_network:
     driver: bridge
+
+volumes:
+  mongodb:

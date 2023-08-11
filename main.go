@@ -13,6 +13,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
+const (
+	MONGO_USERNAME = "MONGO_USERNAME"
+	MONGO_PASSWORD = "MONGO_PASSWORD"
+	MONGO_HOST     = "MONGO_HOST"
+
+	SERVER_PORT = "SERVER_PORT"
+)
+
 type User struct {
 	FistName string `bson:"FistName,omitempty"`
 	LastName string `bson:"LastName,omitempty"`
@@ -20,14 +28,16 @@ type User struct {
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	mongoDbUri := os.Getenv("MONGODB_URI")
+	mongoUser := os.Getenv(MONGO_USERNAME)
+	mongoPassword := os.Getenv(MONGO_PASSWORD)
+	mongoHost := os.Getenv(MONGO_HOST)
+	mongoDbUri := fmt.Sprintf("mongodb://%s:%s@%s:27017", mongoUser, mongoPassword, mongoHost)
 
 	ctx := context.Background()
 	collection := SetUpDatabase(ctx, mongoDbUri)
 
 	r := gin.Default()
-	r.LoadHTMLGlob("*.html") // Assurez-vous que votre fichier HTML est dans le même répertoire
+	r.LoadHTMLGlob("index.html")
 
 	r.GET("/", func(c *gin.Context) {
 		cursor, err := collection.Find(context.TODO(), bson.D{})
@@ -70,7 +80,7 @@ func main() {
 		c.String(200, fmt.Sprintf("User added : %+v", user))
 	})
 
-	r.Run(fmt.Sprintf(":%s", port))
+	r.Run()
 }
 
 func SetUpDatabase(ctx context.Context, mongoDbUri string) *mongo.Collection {
