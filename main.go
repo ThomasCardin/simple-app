@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +41,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) {
 		cursor, err := collection.Find(context.TODO(), bson.D{})
 		if err != nil {
-			log.Fatalf("error getting the collection: %s", err.Error())
+			fmt.Printf("error getting the collection: %s", err.Error())
 			defer cursor.Close(ctx)
 		}
 
@@ -51,7 +50,7 @@ func main() {
 			var result User
 			err := cursor.Decode(&result)
 			if err != nil {
-				log.Fatalf("error decoding documents: %s", err.Error())
+				fmt.Printf("error decoding documents: %s", err.Error())
 			}
 			users = append(users, result)
 		}
@@ -74,7 +73,7 @@ func main() {
 
 		_, err := collection.InsertOne(ctx, user)
 		if err != nil {
-			log.Fatalf("error creating the user: %s", err.Error())
+			fmt.Printf("error creating the user: %s", err.Error())
 		}
 
 		c.String(200, fmt.Sprintf("User added : %+v", user))
@@ -90,7 +89,7 @@ func SetUpDatabase(ctx context.Context, mongoDbUri string) *mongo.Collection {
 	}
 
 	if err := client.Ping(ctx, readpref.Primary()); err != nil {
-		log.Fatalln("Error pinging the database")
+		fmt.Printf("Error pinging the database")
 	}
 
 	usersCollection := client.Database("statefull-go-app").Collection("users")
@@ -102,7 +101,7 @@ func SetUpDatabase(ctx context.Context, mongoDbUri string) *mongo.Collection {
 
 	_, err = usersCollection.InsertMany(ctx, users)
 	if err != nil {
-		log.Fatalf("error creating default users %s", err.Error())
+		fmt.Printf("error creating default users %s", err.Error())
 	}
 
 	return usersCollection
