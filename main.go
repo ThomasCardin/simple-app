@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -21,9 +22,9 @@ const (
 )
 
 type User struct {
-	FistName string `bson:"FistName,omitempty"`
-	LastName string `bson:"LastName,omitempty"`
-	Email    string `bson:"Email,omitempty"`
+	FirstName string `bson:"FirstName,omitempty"`
+	LastName  string `bson:"LastName,omitempty"`
+	Email     string `bson:"Email,omitempty"`
 }
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 	mongoPassword := os.Getenv(MONGO_PASSWORD)
 	mongoHost := os.Getenv(MONGO_HOST)
 	mongoDbUri := fmt.Sprintf("mongodb://%s:%s@%s:27017", mongoUser, mongoPassword, mongoHost)
+	//mongoDbUri := "mongodb://root:root@localhost:27017"
 
 	ctx := context.Background()
 	collection := SetUpDatabase(ctx, mongoDbUri)
@@ -61,14 +63,14 @@ func main() {
 	})
 
 	r.POST("/add", func(c *gin.Context) {
-		firstName := c.PostForm("FistName")
+		firstName := c.PostForm("FirstName")
 		lastName := c.PostForm("LastName")
 		email := c.PostForm("Email")
 
 		user := User{
-			FistName: firstName,
-			LastName: lastName,
-			Email:    email,
+			FirstName: firstName,
+			LastName:  lastName,
+			Email:     email,
 		}
 
 		_, err := collection.InsertOne(ctx, user)
@@ -76,7 +78,7 @@ func main() {
 			fmt.Printf("error creating the user: %s", err.Error())
 		}
 
-		c.String(200, fmt.Sprintf("User added : %+v", user))
+		c.Redirect(http.StatusMovedPermanently, "/")
 	})
 
 	r.Run()
@@ -94,9 +96,9 @@ func SetUpDatabase(ctx context.Context, mongoDbUri string) *mongo.Collection {
 
 	usersCollection := client.Database("statefull-go-app").Collection("users")
 	users := []interface{}{
-		User{FistName: "Cat's Cradle", LastName: "Kurt Vonnegut Jr.", Email: "Testing@allo.com"},
-		User{FistName: "In Memory of Memory", LastName: "Maria Stepanova", Email: "Testing@allo.com"},
-		User{FistName: "Pride and Prejudice", LastName: "Jane Austen", Email: "Testing@allo.com"},
+		User{FirstName: "Cat's Cradle", LastName: "Kurt Vonnegut Jr.", Email: "Testing@allo.com"},
+		User{FirstName: "In Memory of Memory", LastName: "Maria Stepanova", Email: "Testing@allo.com"},
+		User{FirstName: "Pride and Prejudice", LastName: "Jane Austen", Email: "Testing@allo.com"},
 	}
 
 	_, err = usersCollection.InsertMany(ctx, users)
