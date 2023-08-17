@@ -13,7 +13,10 @@
 
     <ul id="userList">
         {{range .users}}
-        <li>{{.FirstName}} {{.LastName}} {{.Email}}</li>
+        <li>{{.Id}} {{.FirstName}} {{.LastName}} {{.Email}}</li>
+        <form action="/delete/{{.Id}}" method="post" style="display: inline;">
+            <input type="submit" value="Delete">
+        </form>
         {{end}}
     </ul>
 

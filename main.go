@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -22,9 +23,17 @@ const (
 )
 
 type User struct {
-	FirstName string `bson:"FirstName,omitempty"`
-	LastName  string `bson:"LastName,omitempty"`
-	Email     string `bson:"Email,omitempty"`
+	Id        primitive.ObjectID `bson:"_id" json:"id,omitempty"`
+	FirstName string             `bson:"FirstName,omitempty" json:"FirstName,omitempty"`
+	LastName  string             `bson:"LastName,omitempty" json:"LastName,omitempty"`
+	Email     string             `bson:"Email,omitempty" json:"Email,omitempty"`
+}
+
+type UserDTO struct {
+	Id        string `bson:"_id" json:"id,omitempty"`
+	FirstName string `bson:"FirstName,omitempty" json:"FirstName,omitempty"`
+	LastName  string `bson:"LastName,omitempty" json:"LastName,omitempty"`
+	Email     string `bson:"Email,omitempty" json:"Email,omitempty"`
 }
 
 func main() {
@@ -50,19 +59,41 @@ func main() {
 			defer cursor.Close(ctx)
 		}
 
-		var users []User
+		var users []UserDTO
 		for cursor.Next(ctx) {
 			var result User
 			err := cursor.Decode(&result)
 			if err != nil {
 				fmt.Printf("error decoding documents: %s", err.Error())
 			}
-			users = append(users, result)
+
+			users = append(users, UserDTO{
+				Id:        result.Id.Hex(),
+				FirstName: result.FirstName,
+				LastName:  result.LastName,
+				Email:     result.Email,
+			})
 		}
 
 		c.HTML(200, "index.html", gin.H{
 			"users": users,
 		})
+	})
+
+	r.POST("/delete/:id", func(c *gin.Context) {
+		id := c.Param("id")
+
+		primitiveId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			fmt.Printf("Error converting the id to primitive.ObjectIDFromHex: %s", err.Error())
+		}
+
+		_, err = collection.DeleteOne(ctx, bson.M{"_id": primitiveId})
+		if err != nil {
+			fmt.Printf("Error deleting user with id: %s %s", id, err.Error())
+		}
+
+		c.Redirect(http.StatusMovedPermanently, "/")
 	})
 
 	r.POST("/add", func(c *gin.Context) {
@@ -71,6 +102,7 @@ func main() {
 		email := c.PostForm("Email")
 
 		user := User{
+			Id:        primitive.NewObjectID(),
 			FirstName: firstName,
 			LastName:  lastName,
 			Email:     email,
@@ -102,9 +134,9 @@ func SetUpDatabase(ctx context.Context, mongoDbUri string) *mongo.Collection {
 
 	usersCollection := client.Database("statefull-go-app").Collection("users")
 	users := []interface{}{
-		User{FirstName: "Cat's Cradle", LastName: "Kurt Vonnegut Jr.", Email: "Testing@allo.com"},
-		User{FirstName: "In Memory of Memory", LastName: "Maria Stepanova", Email: "Testing@allo.com"},
-		User{FirstName: "Pride and Prejudice", LastName: "Jane Austen", Email: "Testing@allo.com"},
+		User{Id: primitive.NewObjectID(), FirstName: "Cat's Cradle", LastName: "Kurt Vonnegut Jr.", Email: "Testing@allo.com"},
+		User{Id: primitive.NewObjectID(), FirstName: "Robert", LastName: "Bob", Email: "foo@allo.com"},
+		User{Id: primitive.NewObjectID(), FirstName: "George", LastName: "Annie", Email: "bar@allo.com"},
 	}
 
 	_, err = usersCollection.InsertMany(ctx, users)
