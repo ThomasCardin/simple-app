@@ -31,8 +31,11 @@ func main() {
 	mongoUser := os.Getenv(MONGO_USERNAME)
 	mongoPassword := os.Getenv(MONGO_PASSWORD)
 	mongoHost := os.Getenv(MONGO_HOST)
+	serverPort := os.Getenv(SERVER_PORT)
 	mongoDbUri := fmt.Sprintf("mongodb://%s:%s@%s:27017", mongoUser, mongoPassword, mongoHost)
-	//mongoDbUri := "mongodb://root:root@localhost:27017"
+
+	fmt.Printf("Connection string: %s", mongoDbUri)
+	fmt.Printf("Server port: %s", serverPort)
 
 	ctx := context.Background()
 	collection := SetUpDatabase(ctx, mongoDbUri)
@@ -81,7 +84,10 @@ func main() {
 		c.Redirect(http.StatusMovedPermanently, "/")
 	})
 
-	r.Run()
+	err := r.Run(fmt.Sprintf(":%s", serverPort))
+	if err != nil {
+		fmt.Printf("Error starting the GIN server: %s", err.Error())
+	}
 }
 
 func SetUpDatabase(ctx context.Context, mongoDbUri string) *mongo.Collection {
