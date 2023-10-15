@@ -1,3 +1,3 @@
-# statefull-go-app
+# simple-app
 Statefull go app using mongodb
 
