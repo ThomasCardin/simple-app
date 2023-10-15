@@ -28,3 +28,14 @@ jobs:
 
     - name: Push the Docker image
       run: docker push simple-app:${{ steps.getsha.outputs.sha }}
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: simple-app-${{ steps.getsha.outputs.sha }}
+        release_name: Release simple-app-${{ steps.getsha.outputs.sha }}
+        body: |
+          Release of simple-app-${{ steps.getsha.outputs.sha }}
+        draft: false
+        prerelease: false
