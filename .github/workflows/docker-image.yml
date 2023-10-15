@@ -24,7 +24,7 @@ jobs:
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:${{ steps.getsha.outputs.sha }}
+      run: docker build -t simple-app:${{ steps.getsha.outputs.sha }} .
 
     - name: Push the Docker image
       run: docker push simple-app:${{ steps.getsha.outputs.sha }}
