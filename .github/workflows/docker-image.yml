@@ -40,3 +40,4 @@ jobs:
           Release of simple-app-${{ steps.getsha.outputs.sha }} to docker hub
         draft: false
         prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
